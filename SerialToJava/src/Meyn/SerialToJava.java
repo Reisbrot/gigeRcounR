@@ -7,17 +7,26 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent; 
 import gnu.io.SerialPortEventListener; 
+import java.sql.Timestamp;
 import java.util.Enumeration;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class SerialToJava implements SerialPortEventListener{
 	SerialPort serialPort;
+        final double initTime = System.currentTimeMillis();
+        static long timeElapsed = 0;
+        static int totalCounts;
+        static int tempCounts;
+        static int CPM;
+        
         /** The port we're normally going to use. */
 	private static final String PORT_NAMES[] = { 
 			"/dev/tty.usbserial-A9007UX1", // Mac OS X
                         "/dev/ttyACM0", // Raspberry Pi
 			"/dev/ttyUSB0", // Linux
-			"COM5", // Windows
+			"COM4", // Windows
 	};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
@@ -95,8 +104,11 @@ public class SerialToJava implements SerialPortEventListener{
 	public synchronized void serialEvent(SerialPortEvent oEvent) {
 		if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
 			try {
+                                tempCounts++;
 				String inputLine=input.readLine();
-				System.out.println(inputLine);
+				System.out.print(inputLine + " at ");
+                                timeElapsed = (long) (System.currentTimeMillis() - initTime);
+                                System.out.println(timeElapsed);     
 			} catch (Exception e) {
 				System.err.println(e.toString());
 			}
@@ -115,7 +127,27 @@ public class SerialToJava implements SerialPortEventListener{
 			}
 		};
 		t.start();
+                Timer timer = new Timer();
+                timer.scheduleAtFixedRate(new TimerTask(){
+                @Override
+                public void run() {
+                    CPM = tempCounts;
+                    totalCounts += tempCounts;
+                    tempCounts = 0;
+                    printInfo();
+                }
+                },60000,60000); //Effri Minädt
 		System.out.println("Started");
 	}
+        
+        static void printInfo(){
+            String minutes = " Minuten";
+            if((timeElapsed/1000/60)+1 == 1)
+                minutes = " Minute";
+            System.out.print("Strahlung diese Minute: "); System.err.println(CPM);
+            System.out.print("Seit " + ((timeElapsed/1000)/60)+1 +  minutes + " gab es insgesamt "); System.err.print(totalCounts); System.out.println(" Ausschläge.");
+        }
+        
+        
 
 }
