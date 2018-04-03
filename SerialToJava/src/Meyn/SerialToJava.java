@@ -11,6 +11,9 @@ import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sound.sampled.*;
 
 
 public class SerialToJava implements SerialPortEventListener{
@@ -26,7 +29,7 @@ public class SerialToJava implements SerialPortEventListener{
 			"/dev/tty.usbserial-A9007UX1", // Mac OS X
                         "/dev/ttyACM0", // Raspberry Pi
 			"/dev/ttyUSB0", // Linux
-			"COM4", // Windows
+			"COM5", // Windows
 	};
 	/**
 	* A BufferedReader which will be fed by a InputStreamReader 
@@ -108,7 +111,8 @@ public class SerialToJava implements SerialPortEventListener{
 				String inputLine=input.readLine();
 				System.out.print(inputLine + " at ");
                                 timeElapsed = (long) (System.currentTimeMillis() - initTime);
-                                System.out.println(timeElapsed);     
+                                System.out.println(timeElapsed);    
+                                beep();
 			} catch (Exception e) {
 				System.err.println(e.toString());
 			}
@@ -134,18 +138,42 @@ public class SerialToJava implements SerialPortEventListener{
                     CPM = tempCounts;
                     totalCounts += tempCounts;
                     tempCounts = 0;
-                    printInfo();
+                    logInfo();
                 }
                 },60000,60000); //Effri Minädt
 		System.out.println("Started");
 	}
         
-        static void printInfo(){
+        static void logInfo(){
             String minutes = " Minuten";
-            if((timeElapsed/1000/60)+1 == 1)
+            if((timeElapsed/1000/60+1) == 1)
                 minutes = " Minute";
             System.out.print("Strahlung diese Minute: "); System.err.println(CPM);
-            System.out.print("Seit " + ((timeElapsed/1000)/60)+1 +  minutes + " gab es insgesamt "); System.err.print(totalCounts); System.out.println(" Ausschläge.");
+            System.out.print("Seit " + ((timeElapsed/1000)/60+1) +  minutes + " gab es insgesamt "); System.err.print(totalCounts); System.out.println(" Ausschläge.");
+            System.out.print("Durchschnittlich sind das "); System.err.print(totalCounts/(timeElapsed/1000/60+1)); System.out.println(" Schläge pro Minute.");
+            Util.writeTo("GammaLogCPM", Integer.toString(CPM), true);
+            Util.writeTo("GammaLogTotalCounts", Integer.toString(totalCounts), true);
+            Util.writeTo("GammaLogAverage", Long.toString(totalCounts/(timeElapsed/1000/60+1)), true);
+            Util.writeTo("test", "test");
+        }
+        
+        static void beep(){
+            try {
+                byte[] buf = new byte[ 1 ];;
+                AudioFormat af = new AudioFormat( (float )44100, 8, 1, true, false );
+                SourceDataLine sdl = AudioSystem.getSourceDataLine( af );
+                sdl.open();
+                sdl.start();
+                for( int i = 0; i < 100 * (float )44100 / 1000; i++ ) {
+                    double angle = i / ( (float )44100 / 440 ) * 2.0 * Math.PI;
+                    buf[ 0 ] = (byte )( Math.sin( angle ) * 100 );
+                    sdl.write( buf, 0, 1 );
+                }
+                sdl.drain();
+                sdl.stop();
+            } catch (LineUnavailableException ex) {
+                Logger.getLogger(SerialToJava.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
         
