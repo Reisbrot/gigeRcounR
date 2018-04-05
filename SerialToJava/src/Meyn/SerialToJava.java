@@ -8,7 +8,10 @@ import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent; 
 import gnu.io.SerialPortEventListener; 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -154,7 +157,18 @@ public class SerialToJava implements SerialPortEventListener{
             Util.writeTo("GammaLogCPM", Integer.toString(CPM), true);
             Util.writeTo("GammaLogTotalCounts", Integer.toString(totalCounts), true);
             Util.writeTo("GammaLogAverage", Long.toString(totalCounts/(timeElapsed/1000/60+1)), true);
-            Util.writeTo("test", "test");
+            Meyn.GraphPanel g = new GraphPanel(createData());
+            g.createAndShowGui();
+        }
+        
+        static List<Double> createData() {
+        List<Double> scores = new ArrayList<>();
+        Random random = new Random();
+        int maxDataPoints = 40;
+        int maxScore = 10;
+        for (int i = 0; i < maxDataPoints; i++)
+            scores.add((double) random.nextDouble() * maxScore);
+        return scores;
         }
         
         static void beep(){

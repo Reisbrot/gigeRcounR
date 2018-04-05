@@ -149,10 +149,10 @@ public class GraphPanel extends JPanel {
         return scores;
     }
 
-    private static void createAndShowGui() {
+    static void createAndShowGui() {
         List<Double> scores = new ArrayList<>();
         Random random = new Random();
-        int maxDataPoints = 400;
+        int maxDataPoints = 40;
         int maxScore = 10;
         for (int i = 0; i < maxDataPoints; i++) {
             scores.add((double) random.nextDouble() * maxScore);
