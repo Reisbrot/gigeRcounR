@@ -164,8 +164,8 @@ public class SerialToJava implements SerialPortEventListener{
                 SourceDataLine sdl = AudioSystem.getSourceDataLine( af );
                 sdl.open();
                 sdl.start();
-                for( int i = 0; i < 100 * (float )44100 / 1000; i++ ) {
-                    double angle = i / ( (float )44100 / 440 ) * 2.0 * Math.PI;
+                for( int i = 0; i < 23 * (float )44100 / 1000; i++ ) {
+                    double angle = i / ( (float )44100 / 270 ) * 2.0 * Math.PI;
                     buf[ 0 ] = (byte )( Math.sin( angle ) * 100 );
                     sdl.write( buf, 0, 1 );
                 }
